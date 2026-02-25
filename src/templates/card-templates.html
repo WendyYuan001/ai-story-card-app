@@ -1,0 +1,108 @@
+<!-- 故事卡片模板 -->
+
+<!-- 模板1: 渐变风格 -->
+<template id="template-gradient">
+<div class="story-card" style="width: 375px; padding: 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+  <div class="card-header" style="margin-bottom: 16px;">
+    <h1 class="card-title" style="color: white; font-size: 28px; font-weight: 700; margin: 0;">{{title}}</h1>
+  </div>
+  
+  <div class="card-image" style="border-radius: 16px; overflow: hidden; margin-bottom: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);">
+    <img src="{{imageUrl}}" style="width: 100%; display: block;" alt="故事图片" />
+  </div>
+  
+  <div class="card-story" style="background: rgba(255,255,255,0.95); padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+    <p class="story-content" style="font-size: 16px; line-height: 1.6; color: #333; margin: 0; white-space: pre-wrap;">{{story}}</p>
+  </div>
+  
+  <div class="card-keywords" style="display: flex; gap: 8px; flex-wrap: wrap;">
+    <span class="keyword-tag" style="background: rgba(255,255,255,0.3); padding: 6px 12px; border-radius: 20px; color: white; font-size: 12px; font-weight: 500;">{{keywords}}</span>
+  </div>
+  
+  <div class="card-footer" style="margin-top: 20px; text-align: center; opacity: 0.8;">
+    <p style="color: white; font-size: 12px; margin: 0;">📸 AI 故事卡片</p>
+  </div>
+</div>
+</template>
+
+<!-- 模板2: 极简风格 -->
+<template id="template-minimal">
+<div class="story-card" style="width: 375px; padding: 0; background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+  <div class="card-image" style="width: 100%; height: 280px; overflow: hidden;">
+    <img src="{{imageUrl}}" style="width: 100%; height: 100%; object-fit: cover;" alt="故事图片" />
+  </div>
+  
+  <div style="padding: 24px;">
+    <h1 class="card-title" style="color: #1a1a1a; font-size: 26px; font-weight: 600; margin: 0 0 16px 0;">{{title}}</h1>
+    
+    <p class="story-content" style="font-size: 15px; line-height: 1.8; color: #4a4a4a; margin: 0 0 20px 0; white-space: pre-wrap;">{{story}}</p>
+    
+    <div class="card-keywords" style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <span class="keyword-tag" style="background: #f0f0f0; padding: 6px 12px; border-radius: 16px; color: #666; font-size: 12px; font-weight: 500;">{{keywords}}</span>
+    </div>
+    
+    <div class="card-footer" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; text-align: center;">
+      <p style="color: #999; font-size: 11px; margin: 0;">AI 故事卡片</p>
+    </div>
+  </div>
+</div>
+</template>
+
+<!-- 模板3: 复古风格 -->
+<template id="template-vintage">
+<div class="story-card" style="width: 375px; padding: 28px; background: #f4e4bc; font-family: 'Georgia', serif; position: relative;">
+  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; border: 8px solid #8b4513; margin: 8px; pointer-events: none;"></div>
+  
+  <div style="position: relative; z-index: 1;">
+    <div class="card-header" style="text-align: center; margin-bottom: 20px;">
+      <h1 class="card-title" style="color: #5d3a1a; font-size: 24px; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 1px;">{{title}}</h1>
+    </div>
+    
+    <div class="card-image" style="border-radius: 4px; overflow: hidden; margin-bottom: 20px; border: 3px solid #5d3a1a;">
+      <img src="{{imageUrl}}" style="width: 100%; display: block;" alt="故事图片" />
+    </div>
+    
+    <div class="card-story" style="background: #fffaf0; padding: 20px; border-radius: 4px; margin-bottom: 16px; box-shadow: 2px 2px 8px rgba(0,0,0,0.1);">
+      <p class="story-content" style="font-size: 14px; line-height: 1.8; color: #3d2914; margin: 0; white-space: pre-wrap;">{{story}}</p>
+    </div>
+    
+    <div class="card-keywords" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+      <span class="keyword-tag" style="background: #5d3a1a; padding: 6px 14px; border-radius: 4px; color: #f4e4bc; font-size: 11px; font-weight: 600;">{{keywords}}</span>
+    </div>
+    
+    <div class="card-footer" style="margin-top: 20px; text-align: center;">
+      <p style="color: #5d3a1a; font-size: 11px; margin: 0; font-style: italic;">~ AI 故事卡片 ~</p>
+    </div>
+  </div>
+</div>
+</template>
+
+<!-- 模板4: 赛博朋克风格 -->
+<template id="template-cyberpunk">
+<div class="story-card" style="width: 375px; padding: 0; background: #0a0e27; font-family: 'Courier New', monospace; position: relative; overflow: hidden;">
+  <!-- 背景网格 -->
+  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(rgba(0,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,0,255,0.03) 1px, transparent 1px); background-size: 20px 20px; pointer-events: none;"></div>
+  
+  <div style="position: relative; z-index: 1; padding: 20px;">
+    <div class="card-header" style="margin-bottom: 16px; border-bottom: 2px solid #00ffff; padding-bottom: 12px;">
+      <h1 class="card-title" style="color: #00ffff; font-size: 20px; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px #00ffff;">{{title}}</h1>
+    </div>
+    
+    <div class="card-image" style="border-radius: 8px; overflow: hidden; margin-bottom: 16px; border: 2px solid #ff00ff; box-shadow: 0 0 20px rgba(255,0,255,0.3);">
+      <img src="{{imageUrl}}" style="width: 100%; display: block;" alt="故事图片" />
+    </div>
+    
+    <div class="card-story" style="background: rgba(0,255,255,0.05); padding: 16px; border-radius: 8px; margin-bottom: 16px; border: 1px solid rgba(0,255,255,0.3); backdrop-filter: blur(10px);">
+      <p class="story-content" style="font-size: 13px; line-height: 1.6; color: #e0e0ff; margin: 0; white-space: pre-wrap;">{{story}}</p>
+    </div>
+    
+    <div class="card-keywords" style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <span class="keyword-tag" style="background: linear-gradient(135deg, #ff00ff, #00ffff); padding: 6px 12px; border-radius: 4px; color: #0a0e27; font-size: 10px; font-weight: 700; text-shadow: 0 0 5px rgba(255,255,255,0.5);">{{keywords}}</span>
+    </div>
+    
+    <div class="card-footer" style="margin-top: 16px; text-align: center; opacity: 0.7;">
+      <p style="color: #00ffff; font-size: 10px; margin: 0;">⚡ AI 故事卡片 ⚡</p>
+    </div>
+  </div>
+</div>
+</template>
