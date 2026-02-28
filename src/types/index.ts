@@ -18,6 +18,7 @@ export interface AIStoryResponse {
   story: string;
   title?: string;
   keywords: string[];
+  videoPrompt?: string;  // 视频生成提示词
 }
 
 // Provider 统一接口

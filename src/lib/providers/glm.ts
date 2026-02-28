@@ -1,13 +1,11 @@
-import { ZhipuAI } from 'zhipuai';
 import { BaseAIProvider } from './base';
 import { AIImageAnalysis, AIStoryRequest } from '@/types';
 
 export class GLMProvider extends BaseAIProvider {
-  private client: ZhipuAI;
+  private baseURL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
 
   constructor(apiKey: string, model?: string) {
     super(apiKey, model);
-    this.client = new ZhipuAI({ apiKey: this.apiKey });
   }
 
   getName(): string {
@@ -19,15 +17,33 @@ export class GLMProvider extends BaseAIProvider {
   }
 
   getDefaultModel(): string {
-    return 'glm-4-flash'; // 默认使用 flash 模型，速度快
+    return 'glm-4-flash';
+  }
+
+  private async callAPI(payload: any) {
+    const response = await fetch(this.baseURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.apiKey}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`GLM API error: ${response.status} - ${error}`);
+    }
+
+    return response.json();
   }
 
   async analyzeImage(imageBase64: string): Promise<AIImageAnalysis> {
     try {
       const base64Data = this.extractBase64(imageBase64);
-      
-      const response = await this.client.chat.completions.create({
-        model: 'glm-4v-plus', // 使用视觉模型
+
+      const response = await this.callAPI({
+        model: 'glm-4v-plus',
         messages: [
           {
             role: 'user',
@@ -92,7 +108,7 @@ ${keywords.length ? `**关键词**：${keywords.join('、')}` : ''}
   "keywords": ["实际使用的关键词1", "关键词2"]
 }`;
 
-      const response = await this.client.chat.completions.create({
+      const response = await this.callAPI({
         model: this.model,
         messages: [
           {

@@ -6,23 +6,80 @@ interface ImageUploaderProps {
   onImageSelect: (dataUrl: string) => void;
 }
 
+// 图片压缩到高清分辨率（最大边长 1920px）
+const compressImage = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+          reject(new Error('无法创建 canvas'));
+          return;
+        }
+
+        // 计算压缩后的尺寸（保持比例，最大边长 1920px）
+        const MAX_SIZE = 1920;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height = (height * MAX_SIZE) / width;
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width = (width * MAX_SIZE) / height;
+            height = MAX_SIZE;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        // 绘制压缩后的图片
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // 转换为 base64（质量 0.9）
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        resolve(compressedDataUrl);
+      };
+      img.onerror = reject;
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
 export default function ImageUploader({ onImageSelect }: ImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [preview, setPreview] = useState<string>('');
+  const [isCompressing, setIsCompressing] = useState(false);
 
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       alert('请选择图片文件');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
-      setPreview(dataUrl);
-    };
-    reader.readAsDataURL(file);
+    setIsCompressing(true);
+
+    try {
+      // 压缩图片
+      const compressedDataUrl = await compressImage(file);
+      setPreview(compressedDataUrl);
+    } catch (error) {
+      console.error('图片压缩失败:', error);
+      alert('图片处理失败，请重试');
+    } finally {
+      setIsCompressing(false);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -65,8 +122,8 @@ export default function ImageUploader({ onImageSelect }: ImageUploaderProps) {
             onDragLeave={handleDragLeave}
             className={`
               border-2 border-dashed rounded-xl p-12 text-center transition-all
-              ${isDragging 
-                ? 'border-indigo-500 bg-indigo-50' 
+              ${isDragging
+                ? 'border-indigo-500 bg-indigo-50'
                 : 'border-gray-300 hover:border-indigo-400'
               }
             `}
@@ -79,35 +136,41 @@ export default function ImageUploader({ onImageSelect }: ImageUploaderProps) {
                 </p>
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="mt-2 px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all font-medium"
+                  disabled={isCompressing}
+                  className="mt-2 px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all font-medium disabled:opacity-50"
                 >
-                  点击选择
+                  {isCompressing ? '处理中...' : '点击选择'}
                 </button>
               </div>
               <p className="text-sm text-gray-500">
                 支持 JPG、PNG、WebP 格式
+                <br />
+                <span className="text-xs">图片将自动压缩到高清分辨率</span>
               </p>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="relative">
+            <div className="relative bg-gray-100 rounded-lg overflow-hidden">
               <img
                 src={preview}
                 alt="预览"
-                className="w-full rounded-lg shadow-md"
+                className="w-full h-auto max-h-[600px] object-contain mx-auto"
+                style={{ maxWidth: '100%' }}
               />
             </div>
             <div className="flex gap-3 justify-center">
               <button
                 onClick={() => setPreview('')}
-                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all font-medium"
+                disabled={isCompressing}
+                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all font-medium disabled:opacity-50"
               >
                 重新选择
               </button>
               <button
                 onClick={handleConfirm}
-                className="px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all font-medium"
+                disabled={isCompressing}
+                className="px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all font-medium disabled:opacity-50"
               >
                 确认使用
               </button>
@@ -140,6 +203,7 @@ export default function ImageUploader({ onImageSelect }: ImageUploaderProps) {
         type="file"
         accept="image/*"
         className="hidden"
+        disabled={isCompressing}
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) handleFileSelect(file);

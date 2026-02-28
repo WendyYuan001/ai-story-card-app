@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { AIStoryResponse, CardTemplate } from '@/types';
+import VideoPromptGenerator from './VideoPromptGenerator';
 
 interface CardPreviewProps {
   imageData: string;
@@ -17,6 +18,7 @@ export default function CardPreview({
   const [selectedTemplate, setSelectedTemplate] = useState<CardTemplate>('gradient');
   const [cardImageUrl, setCardImageUrl] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showVideoPrompt, setShowVideoPrompt] = useState(false);
 
   const templates: { id: CardTemplate; name: string; emoji: string }[] = [
     { id: 'gradient', name: '渐变', emoji: '🌈' },
@@ -104,11 +106,11 @@ export default function CardPreview({
           </div>
         ) : cardImageUrl ? (
           <div className="space-y-4">
-            <div className="flex justify-center">
+            <div className="flex justify-center bg-gray-50 rounded-lg p-4">
               <img
                 src={cardImageUrl}
                 alt="故事卡片"
-                className="max-w-full rounded-lg shadow-md"
+                className="max-w-full max-h-[600px] w-auto h-auto object-contain rounded-lg shadow-md"
               />
             </div>
           </div>
@@ -135,6 +137,30 @@ export default function CardPreview({
             </span>
           ))}
         </div>
+      </div>
+
+      {/* 视频提示词生成 */}
+      <div className="bg-white rounded-2xl shadow-lg p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-semibold text-gray-800">🎬 视频提示词</h3>
+          <button
+            onClick={() => setShowVideoPrompt(!showVideoPrompt)}
+            className="text-sm px-3 py-1 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200"
+          >
+            {showVideoPrompt ? '收起' : '展开'}
+          </button>
+        </div>
+        {showVideoPrompt && (
+          <VideoPromptGenerator
+            story={storyData.story}
+            imageAnalysis={{
+              subjects: storyData.keywords,
+              type: 'other',
+              confidence: 0.8,
+              description: storyData.story
+            }}
+          />
+        )}
       </div>
 
       {/* 操作按钮 */}
