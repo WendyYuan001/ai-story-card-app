@@ -9,7 +9,8 @@ interface HistoryRecord {
   type: string;
   input: {
     description?: string;
-    images?: string[];
+    images?: string[];      // 旧字段 (base64)
+    imageUrls?: string[];   // 新字段 (COS URL)
     options?: {
       duration?: number;
       aspectRatio?: string;
@@ -110,6 +111,11 @@ export default function HistoryPage() {
     });
   };
 
+  // 获取图片列表（支持新旧两种格式）
+  const getImages = (record: HistoryRecord): string[] => {
+    return record.input.imageUrls || record.input.images || [];
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
@@ -179,9 +185,9 @@ export default function HistoryPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     {/* 缩略图 */}
-                    {record.input.images && record.input.images.length > 0 && (
+                    {getImages(record).length > 0 && (
                       <div className="flex -space-x-2">
-                        {record.input.images.slice(0, 3).map((img, i) => (
+                        {getImages(record).slice(0, 3).map((img, i) => (
                           <img
                             key={i}
                             src={img}
@@ -189,9 +195,9 @@ export default function HistoryPage() {
                             className="w-8 h-8 rounded-full border-2 border-white object-cover"
                           />
                         ))}
-                        {record.input.images.length > 3 && (
+                        {getImages(record).length > 3 && (
                           <span className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs text-gray-600">
-                            +{record.input.images.length - 3}
+                            +{getImages(record).length - 3}
                           </span>
                         )}
                       </div>
@@ -206,11 +212,11 @@ export default function HistoryPage() {
                 {expandedId === record.id && (
                   <div className="border-t border-gray-100 px-6 py-4 space-y-4">
                     {/* 图片 */}
-                    {record.input.images && record.input.images.length > 0 && (
+                    {getImages(record).length > 0 && (
                       <div>
                         <h4 className="text-sm font-medium text-gray-700 mb-2">📷 参考图片</h4>
                         <div className="flex flex-wrap gap-2">
-                          {record.input.images.map((img, i) => (
+                          {getImages(record).map((img, i) => (
                             <img
                               key={i}
                               src={img}
