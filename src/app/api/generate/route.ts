@@ -3,12 +3,17 @@ import { AIProviderFactory } from '@/lib/providers';
 import { initializeProviders } from '@/lib/providers';
 import { AIStoryRequest } from '@/types';
 import { generateVideoPrompt, generateChineseVideoPrompt } from '@/lib/video-prompt';
+import { getAuthUser, deductPoints, POINTS_COST } from '@/lib/auth';
+import pool from '@/lib/db';
 
 // 初始化 Providers
 initializeProviders();
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication (optional - if no token, still allow but no points deduction)
+    const user = await getAuthUser(request);
+    
     const body = await request.json();
     const {
       imageAnalysis,
@@ -25,6 +30,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const pointsCost = POINTS_COST.GENERATE_STORY;
 
     // 获取可用的 Provider
     const provider = AIProviderFactory.getProvider();
@@ -50,9 +57,48 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 用户已登录，扣积分（成功后扣）
+    if (user) {
+      const success = await deductPoints(user.userId, pointsCost, '生成故事');
+      
+      if (!success) {
+        return NextResponse.json(
+          { error: `积分不足，需要${pointsCost}积分` },
+          { status: 402 }
+        );
+      }
+    }
+
+    // 保存生成记录
+    if (user) {
+      try {
+        await pool.query(
+          'INSERT INTO generation_records (user_id, type, input_data, output_data, points_used) VALUES ($1, $2, $3, $4, $5)',
+          [
+            user.userId,
+            'story',
+            JSON.stringify({ imageAnalysis, keywords, background, maxLength, includeVideoPrompt, videoStyle }),
+            JSON.stringify({ title: story.title, story: story.story, keywords: story.keywords, videoPrompt }),
+            pointsCost
+          ]
+        );
+      } catch (logError) {
+        console.error('保存生成记录失败:', logError);
+      }
+    }
+
+    // 获取用户剩余积分
+    let remainingPoints = 0;
+    if (user) {
+      const userInfo = await getAuthUser(request);
+      remainingPoints = userInfo?.points || 0;
+    }
+
     return NextResponse.json({
       ...story,
-      videoPrompt
+      videoPrompt,
+      pointsUsed: user ? pointsCost : 0,
+      remainingPoints
     });
   } catch (error) {
     console.error('生成失败:', error);

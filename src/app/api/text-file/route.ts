@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     // 计算统计信息
     const lines = content.split('\n').length;
-    const words = content.split(/\s+/).filter(w => w.length > 0).length;
+    const words = content.split(/\s+/).filter((w: string) => w.length > 0).length;
     const chars = content.length;
     const charsNoSpaces = content.replace(/\s/g, '').length;
 

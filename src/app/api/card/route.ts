@@ -25,8 +25,8 @@ export async function POST(request: NextRequest) {
 
     const buffer = await generator.generateCard(cardInput, template as CardTemplate);
 
-    // 返回图片
-    return new NextResponse(buffer, {
+    // 返回图片 - 将 Buffer 转换为 Uint8Array
+    return new NextResponse(new Uint8Array(buffer), {
       headers: {
         'Content-Type': 'image/png',
         'Content-Disposition': `attachment; filename="ai-story-card-${Date.now()}.png"`,

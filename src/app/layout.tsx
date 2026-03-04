@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AuthProvider } from '@/context/AuthContext';
+import Header from '@/components/Header';
 
 export const metadata: Metadata = {
   title: "AI 故事卡片 - 让每张照片都有故事",
@@ -26,7 +28,10 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body className="antialiased">
-        {children}
+        <AuthProvider>
+          <Header />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

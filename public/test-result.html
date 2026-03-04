@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Story Card App - 全流程测试结果</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: white;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2.5em;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    .card h2 {
+      color: #333;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #667eea;
+    }
+    .step {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+    .step-number {
+      background: #667eea;
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    .step-content {
+      flex: 1;
+    }
+    .step-title {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+    }
+    .step-result {
+      font-size: 14px;
+      color: #666;
+      word-break: break-all;
+    }
+    .success { color: #28a745; }
+    .error { color: #dc3545; }
+    .points {
+      display: inline-block;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .summary {
+      text-align: center;
+      padding: 30px;
+    }
+    .summary h2 {
+      font-size: 2em;
+      color: #28a745;
+      margin-bottom: 10px;
+    }
+    .summary p {
+      color: #666;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 AI Story Card App - 全流程测试</h1>
+    
+    <div class="card">
+      <h2>📋 测试步骤</h2>
+      
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <div class="step-title">用户注册</div>
+          <div class="step-result success">✅ 注册成功，获得 1000 初始积分</div>
+        </div>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <div class="step-title">用户登录</div>
+          <div class="step-result success">✅ 登录成功，获得 100 每日积分</div>
+        </div>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <div class="step-title">生成故事</div>
+          <div class="step-result success">✅ 故事生成成功，扣除 10 积分</div>
+        </div>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <div class="step-title">生成视频提示词</div>
+          <div class="step-result success">✅ 视频提示词生成成功，扣除 5 积分</div>
+        </div>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-content">
+          <div class="step-title">查看历史记录</div>
+          <div class="step-result success">✅ 历史记录查询成功，共 2 条记录</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>📊 积分变化</h2>
+      <div class="step">
+        <div class="step-number">💰</div>
+        <div class="step-content">
+          <div class="step-title">当前积分</div>
+          <div class="step-result">
+            <span class="points">1085 积分</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span>注册奖励:</span>
+          <span class="success">+1000</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span>登录奖励:</span>
+          <span class="success">+100</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span>生成故事:</span>
+          <span style="color: #dc3545;">-10</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span>生成视频提示词:</span>
+          <span style="color: #dc3545;">-5</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>📝 生成的故事</h2>
+      <div style="background: #f8f9fa; padding: 16px; border-radius: 8px;">
+        <h3 style="color: #667eea; margin-bottom: 12px;">《窗台守望者》</h3>
+        <p style="color: #666; line-height: 1.8;">
+          阳光透过薄薄的窗帘，洒在窗台上。一只橘猫悠闲地躺在那里，用它那明亮的眼睛看着窗外的世界。树叶在风中摇曳，小鸟在枝头欢唱，橘猫的心中充满了宁静。它知道，即使世界喧嚣，窗台上的这一刻，是属于它的治愈时光。
+        </p>
+        <div style="margin-top: 12px;">
+          <span style="background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-right: 8px;">橘猫</span>
+          <span style="background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-right: 8px;">窗台</span>
+          <span style="background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-right: 8px;">风景</span>
+          <span style="background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-right: 8px;">治愈</span>
+          <span style="background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-size: 12px;">宁静</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>📜 历史记录</h2>
+      <div style="background: #f8f9fa; padding: 16px; border-radius: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #dee2e6;">
+          <div>
+            <strong>故事生成</strong>
+            <div style="font-size: 12px; color: #666;">2026-03-03 10:26:50</div>
+          </div>
+          <span style="color: #dc3545;">-10 积分</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
+          <div>
+            <strong>视频提示词</strong>
+            <div style="font-size: 12px; color: #666;">2026-03-03 10:26:50</div>
+          </div>
+          <span style="color: #dc3545;">-5 积分</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card summary">
+      <h2>✅ 全流程测试通过！</h2>
+      <p>所有功能正常运行</p>
+    </div>
+  </div>
+</body>
+</html>

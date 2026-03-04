@@ -1,4 +1,4 @@
-import { AIProvider, AIImageAnalysis, AIStoryRequest } from '@/types';
+import { AIProvider, AIImageAnalysis, AIStoryRequest, AIStoryResponse } from '@/types';
 
 // 抽象基类，方便后续扩展
 export abstract class BaseAIProvider implements AIProvider {
