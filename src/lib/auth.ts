@@ -9,6 +9,7 @@ function generateSessionToken(): string {
 export const POINTS_COST = {
   GENERATE_STORY: 10,
   GENERATE_VIDEO_PROMPT: 5,
+  GENERATE_VIDEO_PROMPT_V2: 10,
   GENERATE_CARD: 5,
 };
 

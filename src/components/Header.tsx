@@ -28,6 +28,12 @@ export default function Header() {
         </Link>
 
         <nav className="flex items-center gap-3">
+          <Link
+            href="/video-prompt"
+            className="px-3 py-1.5 text-gray-600 hover:text-indigo-600 text-sm transition-colors"
+          >
+            🎬 视频提示词
+          </Link>
           {loading ? (
             <span className="text-gray-400 text-sm">加载中...</span>
           ) : user ? (
