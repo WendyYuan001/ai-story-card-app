@@ -4,6 +4,7 @@ import pool from '@/lib/db';
 import { AIProviderFactory } from '@/lib/providers';
 import { initializeProviders } from '@/lib/providers';
 import { uploadImages } from '@/lib/cos';
+import { acquireTaskLock, releaseTaskLock } from '@/lib/rate-limit';
 
 initializeProviders();
 
@@ -40,6 +41,9 @@ const STORY_STYLE_MAP: Record<string, string> = {
 };
 
 export async function POST(request: NextRequest) {
+  let taskId: string | null = null;
+  let userId: number | null = null;
+  
   try {
     const user = await getAuthUser(request);
     
@@ -47,6 +51,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: '请先登录' },
         { status: 401 }
+      );
+    }
+
+    userId = user.userId;
+
+    // 检查任务锁 - 同时只能有一个生成任务
+    taskId = acquireTaskLock(user.userId);
+    if (!taskId) {
+      return NextResponse.json(
+        { error: '您有一个任务正在运行，请稍后再试' },
+        { status: 429 }
       );
     }
 
@@ -225,5 +240,10 @@ ${description}
       { error: '服务器错误' },
       { status: 500 }
     );
+  } finally {
+    // 释放任务锁
+    if (userId && taskId) {
+      releaseTaskLock(userId, taskId);
+    }
   }
 }

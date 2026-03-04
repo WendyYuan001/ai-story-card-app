@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/auth';
 import pool from '@/lib/db';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,6 +11,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: '请先登录' },
         { status: 401 }
+      );
+    }
+
+    // 限流检查 - 每秒最多1次
+    const rateLimit = checkRateLimit(`history:${user.userId}`, 1, 1000);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: '请求太频繁，请稍后再试' },
+        { status: 429 }
       );
     }
 

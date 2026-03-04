@@ -5,14 +5,30 @@ import { AIStoryRequest } from '@/types';
 import { generateVideoPrompt, generateChineseVideoPrompt } from '@/lib/video-prompt';
 import { getAuthUser, deductPoints, POINTS_COST } from '@/lib/auth';
 import pool from '@/lib/db';
+import { acquireTaskLock, releaseTaskLock } from '@/lib/rate-limit';
 
 // 初始化 Providers
 initializeProviders();
 
 export async function POST(request: NextRequest) {
+  let taskId: string | null = null;
+  let userId: number | null = null;
+  
   try {
     // Check authentication (optional - if no token, still allow but no points deduction)
     const user = await getAuthUser(request);
+    
+    // 如果用户已登录，检查任务锁
+    if (user) {
+      userId = user.userId;
+      taskId = acquireTaskLock(user.userId);
+      if (!taskId) {
+        return NextResponse.json(
+          { error: '您有一个任务正在运行，请稍后再试' },
+          { status: 429 }
+        );
+      }
+    }
     
     const body = await request.json();
     const {
@@ -106,5 +122,10 @@ export async function POST(request: NextRequest) {
       { error: '故事生成失败' },
       { status: 500 }
     );
+  } finally {
+    // 释放任务锁
+    if (userId && taskId) {
+      releaseTaskLock(userId, taskId);
+    }
   }
 }
