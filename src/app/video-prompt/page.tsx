@@ -58,8 +58,8 @@ const STORY_STYLE_OPTIONS = [
   { value: 'other', label: '📝 其他' },
 ];
 
-// 压缩图片
-async function compressImage(file: File, maxWidth = 1024, quality = 0.8): Promise<string> {
+// 压缩图片 - 等宽高比压缩，宽高都不超过 1024
+async function compressImage(file: File, maxSize = 1024, quality = 0.8): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -69,9 +69,15 @@ async function compressImage(file: File, maxWidth = 1024, quality = 0.8): Promis
         let width = img.width;
         let height = img.height;
 
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
+        // 等宽高比缩放，确保宽高都不超过 maxSize
+        if (width > maxSize || height > maxSize) {
+          if (width > height) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          } else {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
         }
 
         canvas.width = width;
@@ -107,7 +113,10 @@ export default function VideoPromptPage() {
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showImagePicker, setShowImagePicker] = useState(false);
+  const [pickerPosition, setPickerPosition] = useState({ top: 0, left: 0 });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 检查登录状态
   useEffect(() => {
@@ -116,8 +125,74 @@ export default function VideoPromptPage() {
     }
   }, [user, loading, router]);
 
-  // 处理图片上传
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 处理单个图片上传（通过 @ 触发）
+  const handleSingleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (images.length >= 5) {
+      setError('最多上传5张图片');
+      setShowImagePicker(false);
+      return;
+    }
+
+    const isValidType = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type);
+    const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB
+    
+    if (!isValidType) {
+      setError('只支持 JPG、PNG、WebP 格式');
+      setShowImagePicker(false);
+      return;
+    }
+    if (!isValidSize) {
+      setError('图片大小不能超过 10MB');
+      setShowImagePicker(false);
+      return;
+    }
+
+    setError(null);
+    setShowImagePicker(false);
+
+    const preview = URL.createObjectURL(file);
+    const compressed = await compressImage(file);
+    const newIndex = images.length + 1;
+    
+    setImages(prev => [...prev, {
+      id: Date.now() + Math.random(),
+      file,
+      preview,
+      compressed,
+    }]);
+
+    // 在光标位置插入 [图片N]
+    if (textareaRef.current) {
+      const textarea = textareaRef.current;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const textBefore = description.substring(0, start);
+      const textAfter = description.substring(end);
+      
+      // 移除刚刚输入的 @
+      const newTextBefore = textBefore.endsWith('@') ? textBefore.slice(0, -1) : textBefore;
+      const newDescription = newTextBefore + `[图片${newIndex}]` + textAfter;
+      setDescription(newDescription);
+      
+      // 设置光标位置
+      setTimeout(() => {
+        const newPos = newTextBefore.length + `[图片${newIndex}]`.length;
+        textarea.setSelectionRange(newPos, newPos);
+        textarea.focus();
+      }, 0);
+    }
+
+    // 重置 input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // 处理批量图片上传
+  const handleBatchImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (images.length + files.length > 5) {
       setError('最多上传5张图片');
@@ -126,13 +201,13 @@ export default function VideoPromptPage() {
 
     const validFiles = files.filter(file => {
       const isValidType = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type);
-      const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
+      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB
       if (!isValidType) {
         setError('只支持 JPG、PNG、WebP 格式');
         return false;
       }
       if (!isValidSize) {
-        setError('图片大小不能超过 5MB');
+        setError('图片大小不能超过 10MB');
         return false;
       }
       return true;
@@ -160,19 +235,66 @@ export default function VideoPromptPage() {
     }
   };
 
+  // 监听文本输入，检测 @ 符号
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setDescription(value);
+
+    // 检测是否刚输入了 @
+    const cursorPos = e.target.selectionStart;
+    if (cursorPos > 0 && value[cursorPos - 1] === '@') {
+      // 获取 @ 符号的位置，显示选择器
+      const textarea = e.target;
+      const rect = textarea.getBoundingClientRect();
+      
+      // 简单估算位置（实际可能需要更精确的计算）
+      const lineHeight = 24; // 估算行高
+      const charWidth = 10; // 估算字符宽度
+      const lines = value.substring(0, cursorPos).split('\n');
+      const currentLine = lines.length;
+      const currentCol = lines[lines.length - 1].length;
+      
+      setPickerPosition({
+        top: rect.top + (currentLine * lineHeight) - textarea.scrollTop,
+        left: rect.left + (currentCol * charWidth),
+      });
+      setShowImagePicker(true);
+    } else {
+      setShowImagePicker(false);
+    }
+  };
+
   // 删除图片
-  const removeImage = (id: number) => {
+  const removeImage = (index: number) => {
     setImages(prev => {
-      const img = prev.find(i => i.id === id);
+      const img = prev[index];
       if (img) URL.revokeObjectURL(img.preview);
-      return prev.filter(i => i.id !== id);
+      
+      // 更新描述中的引用
+      const oldRef = `[图片${index + 1}]`;
+      let newDescription = description.split(oldRef).join('【待删除】');
+      
+      // 更新后续图片的引用编号
+      for (let i = index + 1; i < prev.length; i++) {
+        const oldRefNext = `[图片${i + 1}]`;
+        const newRefNext = `[图片${i}]`;
+        newDescription = newDescription.split(oldRefNext).join(newRefNext);
+      }
+      
+      // 移除标记为待删除的引用
+      newDescription = newDescription.split('【待删除】').join('');
+      setDescription(newDescription);
+      
+      return prev.filter((_, i) => i !== index);
     });
   };
 
   // 插入图片引用
   const insertImageRef = (index: number) => {
-    const ref = `@${index + 1}`;
-    setDescription(prev => prev + ref + ' ');
+    const ref = `[图片${index + 1}]`;
+    setDescription(prev => prev + ref);
+    setShowImagePicker(false);
+    textareaRef.current?.focus();
   };
 
   // 生成提示词
@@ -242,6 +364,15 @@ export default function VideoPromptPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      {/* 隐藏的文件上传 input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={handleSingleImageUpload}
+        className="hidden"
+      />
+
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* 标题 */}
         <div className="text-center mb-8">
@@ -270,22 +401,16 @@ export default function VideoPromptPage() {
                       alt={`图片${index + 1}`}
                       className="w-full h-full object-cover rounded-lg"
                     />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
                       <button
-                        onClick={() => insertImageRef(index)}
-                        className="px-2 py-1 bg-white text-gray-800 text-xs rounded"
-                      >
-                        插入@{index + 1}
-                      </button>
-                      <button
-                        onClick={() => removeImage(img.id)}
+                        onClick={() => removeImage(index)}
                         className="px-2 py-1 bg-red-500 text-white text-xs rounded"
                       >
                         删除
                       </button>
                     </div>
                     <span className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-1 rounded">
-                      @{index + 1}
+                      图片{index + 1}
                     </span>
                   </div>
                 ))}
@@ -293,11 +418,10 @@ export default function VideoPromptPage() {
                 {images.length < 5 && (
                   <label className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-indigo-500 transition-colors">
                     <input
-                      ref={fileInputRef}
                       type="file"
                       accept="image/jpeg,image/png,image/webp"
                       multiple
-                      onChange={handleImageUpload}
+                      onChange={handleBatchImageUpload}
                       className="hidden"
                     />
                     <span className="text-gray-400 text-2xl">+</span>
@@ -306,25 +430,68 @@ export default function VideoPromptPage() {
               </div>
               
               <p className="text-xs text-gray-500">
-                支持 JPG/PNG/WebP，单张≤5MB，上传时自动压缩
+                支持 JPG/PNG/WebP，单张≤10MB，上传时自动压缩
               </p>
             </div>
 
             {/* 描述输入 */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-6 relative">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
                 ✏️ 描述你想要的视频场景
               </h2>
               
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="描述你想要的视频场景...&#10;&#10;例如：@1是一只可爱的小猫，它正在追逐一个红色的毛线球，场景是温馨的客厅，阳光透过窗户洒进来..."
-                className="w-full h-40 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
-              />
+              <div className="relative">
+                <textarea
+                  ref={textareaRef}
+                  value={description}
+                  onChange={handleDescriptionChange}
+                  placeholder="描述你想要的视频场景...&#10;&#10;例如：[图片1]是一只可爱的小猫，它正在追逐一个红色的毛线球，场景是温馨的客厅...&#10;&#10;输入 @ 可以快速插入图片引用"
+                  className="w-full h-40 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                />
+                
+                {/* 图片选择弹窗 */}
+                {showImagePicker && (
+                  <div 
+                    className="absolute z-10 bg-white border border-gray-200 rounded-lg shadow-lg p-2 min-w-[120px]"
+                    style={{ top: '100%', left: 0 }}
+                  >
+                    {images.length === 0 ? (
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 rounded flex items-center gap-2"
+                      >
+                        <span>📷</span>
+                        <span>上传新图片</span>
+                      </button>
+                    ) : (
+                      <>
+                        {images.map((_, index) => (
+                          <button
+                            key={index}
+                            onClick={() => insertImageRef(index)}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 rounded flex items-center gap-2"
+                          >
+                            <span>📷</span>
+                            <span>[图片{index + 1}]</span>
+                          </button>
+                        ))}
+                        {images.length < 5 && (
+                          <button
+                            onClick={() => fileInputRef.current?.click()}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 rounded flex items-center gap-2 border-t border-gray-100 mt-1 pt-2"
+                          >
+                            <span>➕</span>
+                            <span>上传新图片</span>
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
               
               <p className="text-xs text-gray-500 mt-2">
-                使用 @1 @2 等引用上传的图片，例如 "@1中的猫咪跳到了@2的沙发上"
+                输入 @ 可快速引用图片，例如 "[图片1]中的猫咪跳到了[图片2]的沙发上"
               </p>
             </div>
 

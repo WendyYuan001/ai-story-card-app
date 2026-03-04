@@ -61,14 +61,14 @@ export async function POST(request: NextRequest) {
 
     const pointsCost = 10;
 
-    // 解析图片引用
+    // 解析图片引用 - 支持 [图片N] 和 @N 两种格式
     let processedDescription = description;
     const imageRefs: { ref: string; index: number }[] = [];
-    const refRegex = /@(\d+)/g;
+    const refRegex = /\[图片(\d+)\]|@(\d+)/g;
     let match;
     
     while ((match = refRegex.exec(description)) !== null) {
-      const index = parseInt(match[1]) - 1;
+      const index = parseInt(match[1] || match[2]) - 1;
       if (index >= 0 && index < images.length) {
         imageRefs.push({ ref: match[0], index });
       }
@@ -108,10 +108,10 @@ Requirements:
       for (let i = 0; i < images.length; i++) {
         try {
           const analysis = await provider.analyzeImage(images[i]);
-          imageDescriptions.push(`图片${i + 1}(@${i + 1})的内容：${analysis.description}`);
+          imageDescriptions.push(`图片${i + 1}（[图片${i + 1}]）的内容：${analysis.description}`);
         } catch (e) {
           console.error(`分析图片${i + 1}失败:`, e);
-          imageDescriptions.push(`图片${i + 1}(@${i + 1})：[无法分析]`);
+          imageDescriptions.push(`图片${i + 1}（[图片${i + 1}]）：[无法分析]`);
         }
       }
       
