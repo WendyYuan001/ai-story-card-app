@@ -4,7 +4,6 @@ import pool from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
-    // Check authentication
     const user = await getAuthUser(request);
     
     if (!user) {
@@ -14,54 +13,50 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type'); // 'story' | 'video-prompt' | 'card' | null
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const offset = (page - 1) * limit;
+    const { type, page = '1', pageSize = '20' } = Object.fromEntries(
+      new URL(request.url).searchParams.entries()
+    );
 
-    // Build query
-    let query = 'SELECT id, type, input_data, output_data, points_used, created_at FROM generation_records WHERE user_id = $1';
-    const params: any[] = [user.userId];
+    const pageNum = parseInt(page, 10) || 1;
+    const pageSizeNum = parseInt(pageSize, 10) || 20;
 
-    if (type) {
-      query += ' AND type = $2';
-      params.push(type);
-    }
+    const offset = (pageNum - 1) * pageSizeNum;
+    const limit = pageSizeNum;
 
-    query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
-    params.push(limit, offset);
+    // 查询总数
+    const countResult = await pool.query(
+      'SELECT COUNT(*) as total FROM generation_records WHERE user_id = $1',
+      [user.userId]
+    );
+    const total = countResult.rows[0].total;
 
-    const result = await pool.query(query, params);
+    // 查询记录
+    const result = await pool.query(
+      `SELECT id, type, input_data, output_data, points_used, created_at 
+       FROM generation_records 
+       WHERE user_id = $1 
+       ORDER BY created_at DESC 
+       LIMIT $2 OFFSET $3`,
+      [user.userId, limit, offset]
+    );
 
-    // Get total count
-    let countQuery = 'SELECT COUNT(*) as total FROM generation_records WHERE user_id = $1';
-    const countParams: any[] = [user.userId];
-    if (type) {
-      countQuery += ' AND type = $2';
-      countParams.push(type);
-    }
-    const countResult = await pool.query(countQuery, countParams);
-    const total = parseInt(countResult.rows[0].total);
-
-    // Transform records
     const records = result.rows.map(row => ({
       id: row.id,
       type: row.type,
-      inputData: row.input_data,
-      outputData: row.output_data,
+      input: row.input_data,
+      output: row.output_data,
       pointsUsed: row.points_used,
-      createdAt: row.created_at
+      createdAt: row.created_at,
     }));
 
     return NextResponse.json({
       records,
       pagination: {
-        page,
-        limit,
+        page: pageNum,
+        pageSize: pageSizeNum,
         total,
-        totalPages: Math.ceil(total / limit)
-      }
+        totalPages: Math.ceil(total / pageSizeNum),
+      },
     });
   } catch (error) {
     console.error('获取历史记录失败:', error);

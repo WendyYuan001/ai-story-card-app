@@ -38,6 +38,12 @@ export default function Header() {
             <span className="text-gray-400 text-sm">加载中...</span>
           ) : user ? (
             <>
+              <Link
+                href="/history"
+                className="px-3 py-1.5 text-gray-600 hover:text-indigo-600 text-sm transition-colors"
+              >
+                📜 历史
+              </Link>
               <div className="flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-full">
                 <span className="text-indigo-600 font-medium">{user.username}</span>
                 <span className="text-gray-300">|</span>

@@ -181,14 +181,14 @@ ${description}
       );
     }
 
-    // 保存记录
+    // 保存记录（包含图片）
     try {
       await pool.query(
         'INSERT INTO generation_records (user_id, type, input_data, output_data, points_used) VALUES ($1, $2, $3, $4, $5)',
         [
           user.userId,
           'video-prompt-v2',
-          JSON.stringify({ description, imageCount: images.length, options }),
+          JSON.stringify({ description, images, options }),
           JSON.stringify({ prompt }),
           pointsCost,
         ]
