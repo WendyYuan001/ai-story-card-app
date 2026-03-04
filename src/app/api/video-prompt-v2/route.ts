@@ -3,6 +3,7 @@ import { getAuthUser, deductPoints, POINTS_COST } from '@/lib/auth';
 import pool from '@/lib/db';
 import { AIProviderFactory } from '@/lib/providers';
 import { initializeProviders } from '@/lib/providers';
+import { uploadImages } from '@/lib/cos';
 
 initializeProviders();
 
@@ -181,14 +182,25 @@ ${description}
       );
     }
 
-    // 保存记录（包含图片）
+    // 上传图片到 COS
+    let imageUrls: string[] = [];
+    if (images.length > 0) {
+      try {
+        imageUrls = await uploadImages(images, `user_${user.userId}`);
+      } catch (e) {
+        console.error('上传图片到 COS 失败:', e);
+        // 继续执行，只是图片URL为空
+      }
+    }
+
+    // 保存记录（使用 COS URL 而不是 base64）
     try {
       await pool.query(
         'INSERT INTO generation_records (user_id, type, input_data, output_data, points_used) VALUES ($1, $2, $3, $4, $5)',
         [
           user.userId,
           'video-prompt-v2',
-          JSON.stringify({ description, images, options }),
+          JSON.stringify({ description, imageUrls, options }),
           JSON.stringify({ prompt }),
           pointsCost,
         ]

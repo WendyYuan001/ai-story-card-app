@@ -12,6 +12,7 @@
     "@anthropic-ai/sdk": "^0.32.1",
     "@google/generative-ai": "^0.21.0",
     "bcryptjs": "^3.0.3",
+    "cos-nodejs-sdk-v5": "^2.15.4",
     "handlebars": "^4.7.8",
     "jsonwebtoken": "^9.0.3",
     "next": "^15.0.0",
