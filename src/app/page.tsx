@@ -100,7 +100,14 @@ export default function Home() {
                   className="px-8 py-4 bg-white text-purple-600 font-bold rounded-2xl text-lg border-2 border-purple-200 hover:border-purple-400 transition-all inline-flex items-center justify-center gap-2"
                 >
                   <span>🎬</span>
-                  <span>试试视频提示词</span>
+                  <span>视频提示词生成器</span>
+                </Link>
+                <Link
+                  href="/video-generator"
+                  className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold rounded-2xl text-lg inline-flex items-center justify-center gap-2"
+                >
+                  <span>🎥</span>
+                  <span>AI 视频生成</span>
                 </Link>
               </div>
 

@@ -366,17 +366,6 @@ export default function VideoPromptPage() {
       />
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 py-8">
-        {/* 标题 */}
-        <div className="text-center mb-8 animate-fade-in-up">
-          <span className="text-5xl animate-bounce-gentle inline-block">🎬</span>
-          <h1 className="text-3xl font-bold text-gradient mt-4">
-            视频提示词生成器
-          </h1>
-          <p className="text-gray-600 mt-2">
-            上传图片，描述场景，生成专业的视频生成提示词
-          </p>
-        </div>
-
         <div className="grid lg:grid-cols-2 gap-6">
           {/* 左侧：输入区 */}
           <div className="space-y-5">
@@ -678,9 +667,19 @@ export default function VideoPromptPage() {
               </div>
               
               {result ? (
-                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 whitespace-pre-wrap text-gray-700 text-sm leading-relaxed max-h-[500px] overflow-y-auto">
-                  {result}
-                </div>
+                <>
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 whitespace-pre-wrap text-gray-700 text-sm leading-relaxed max-h-[400px] overflow-y-auto">
+                    {result}
+                  </div>
+                  {/* 生成视频按钮 */}
+                  <button
+                    onClick={() => router.push(`/video-generator?prompt=${encodeURIComponent(result)}`)}
+                    className="w-full mt-4 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold rounded-xl text-base hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                  >
+                    <span>🎥</span>
+                    <span>使用此提示词生成视频</span>
+                  </button>
+                </>
               ) : (
                 <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-8 text-center">
                   <div className="text-4xl mb-3 animate-float">🎬</div>

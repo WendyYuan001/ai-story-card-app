@@ -19,6 +19,7 @@ export default function Header() {
   const navLinks = [
     { href: '/', label: '故事卡片', emoji: '📸' },
     { href: '/video-prompt', label: '视频提示词', emoji: '🎬' },
+    { href: '/video-generator', label: '视频生成', emoji: '🎥' },
   ];
 
   return (
